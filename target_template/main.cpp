@@ -19,31 +19,31 @@ core::led::Subscriber led_subscriber("led_subscriber", core::os::Thread::Priorit
 
 // MAIN
 extern "C" {
-   int
-   main()
-   {
-      module.initialize();
+    int
+    main()
+    {
+        module.initialize();
 
-      // Led subscriber node
-      core::led::SubscriberConfiguration led_subscriber_configuration;
-      led_subscriber_configuration.topic = "led";
-      led_subscriber.setConfiguration(led_subscriber_configuration);
+        // Led subscriber node
+        core::led::SubscriberConfiguration led_subscriber_configuration;
+        led_subscriber_configuration.topic = "led";
+        led_subscriber.setConfiguration(led_subscriber_configuration);
 
-      module.add(led_subscriber);
+        module.add(led_subscriber);
 
-      // Setup and run
-      module.setup();
-      module.run();
+        // Setup and run
+        module.setup();
+        module.run();
 
-      // Is everything going well?
-      for (;;) {
-         if (!module.isOk()) {
-            module.halt("This must not happen!");
-         }
+        // Is everything going well?
+        for (;;) {
+            if (!module.isOk()) {
+                module.halt("This must not happen!");
+            }
 
-         core::os::Thread::sleep(core::os::Time::ms(500));
-      }
+            core::os::Thread::sleep(core::os::Time::ms(500));
+        }
 
-      return core::os::Thread::OK;
-   } // main
+        return core::os::Thread::OK;
+    } // main
 }

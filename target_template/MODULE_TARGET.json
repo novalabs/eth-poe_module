@@ -1,10 +1,17 @@
 {
   "name": "@@NAME@@",
   "description": "@@DESCRIPTION@@",
-  "module": "eth",
-  "required_packages": [],
+  "module": "eth-poe",
+  "os_version": "CHIBIOS_16",
+  "required_os_components": [],
+  "required_packages": [
+    "common_msgs",
+    "led"
+  ],
   "sources": [
     "main.cpp"
   ],
-  "includes": []
+  "includes": [],
+  "bootloader_size": 0,
+  "configuration_size": 0
 }
