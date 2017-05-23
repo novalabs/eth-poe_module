@@ -7,59 +7,59 @@
 #include <core/mw/Middleware.hpp>
 #include <core/mw/transport/RTCANTransport.hpp>
 
-#include "ch.h"
-#include "hal.h"
-#include "usbcfg.h"
+#include <core/snippets/CortexMxFaultHandlers.h>
 
 #include <core/hw/GPIO.hpp>
 #include <core/hw/SD.hpp>
+#include "usbcfg.h" // SDU1
 #include <core/hw/SDU.hpp>
-#include <core/hw/UID.hpp>
 #include <core/hw/IWDG.hpp>
 #include <core/os/Thread.hpp>
+#include <core/os/IOChannel.hpp>
+
 #include <Module.hpp>
 
-
-using LED_PAD = core::hw::Pad_<core::hw::GPIO_E, GPIOE_LED>;
+// LED
+using LED_PAD = core::hw::Pad_<core::hw::GPIO_E, LED_PIN>;
 static LED_PAD _led;
 
+// SD LED
 using SD_LED_PAD = core::hw::Pad_<core::hw::GPIO_A, GPIOA_SD_LED>;
 static SD_LED_PAD _sd_led;
 
-using SDU_1_STREAM = core::os::SDChannelTraits<core::hw::SDU_1>;
-using SD_3_STREAM  = core::os::SDChannelTraits<core::hw::SD_3>;
-
-using STREAM = core::os::IOChannel_<SDU_1_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
-using SERIAL = core::os::IOChannel_<SD_3_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
-
-static STREAM        _stream;
-core::os::IOChannel& Module::stream = _stream;
-
-static SERIAL        _serial;
-core::os::IOChannel& Module::serial = _serial;
-
-core::hw::Pad& Module::sd_led = _sd_led;
-
+// PHY !POWERDOWN
 using PHY_PAD = core::hw::Pad_<core::hw::GPIO_C, GPIOC_ETH_PWRDN>;
 static PHY_PAD _phy_not_pwrdown;
 
+// USB SERIAL
+using SDU_1_STREAM = core::os::SDChannelTraits<core::hw::SDU_1>;
+using USBSERIAL = core::os::IOChannel_<SDU_1_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
+static USBSERIAL _stream;
+
+// SERIAL
+using SD_3_STREAM  = core::os::SDChannelTraits<core::hw::SD_3>;
+using SERIAL = core::os::IOChannel_<SD_3_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
+static SERIAL _serial;
+
+// MODULE DEVICES
+core::hw::Pad& Module::sd_led = _sd_led;
+core::os::IOChannel& Module::stream = _stream;
+core::os::IOChannel& Module::serial = _serial;
+
+
+// SYSTEM STUFF
+static core::os::Thread::Stack<1024> management_thread_stack;
 static core::mw::RTCANTransport      rtcantra(&RTCAND1);
-static core::os::Thread::Stack<2048> management_thread_stack;
-
-RTCANConfig rtcan_config = {
-    1000000, 100, 60
-};
-
-// ----------------------------------------------------------------------------
-// CoreModule STM32FlashConfigurationStorage
-// ----------------------------------------------------------------------------
-#include <core/snippets/CoreModuleSTM32FlashConfigurationStorage.hpp>
-// ----------------------------------------------------------------------------
 
 core::mw::Middleware
 core::mw::Middleware::instance(
     ModuleConfiguration::MODULE_NAME
 );
+
+
+RTCANConfig rtcan_config = {
+    1000000, 100, 60
+};
 
 
 Module::Module()
@@ -68,33 +68,25 @@ Module::Module()
 bool
 Module::initialize()
 {
+    FAULT_HANDLERS_ENABLE(true);
+
     static bool initialized = false;
 
     if (!initialized) {
-        /*
-        * Initializes a serial-over-USB CDC driver.
-        */
-        sduObjectInit(core::hw::SDU_1::driver);
-        sduStart(core::hw::SDU_1::driver, &serusbcfg);
-        sdStart(core::hw::SD_3::driver, nullptr);
-
-        //sdcStart(&SDCD1, NULL);
-
-        //sdStart(core::hw::SD_1::driver, nullptr);
-
-        /*
-         * Activates the USB driver and then the USB bus pull-up on D+.
-         * Note, a delay is inserted in order to not have to disconnect the cable
-         * after a reset.
-         */
-        usbDisconnectBus(serusbcfg.usbp);
-        chThdSleepMilliseconds(1500);
-        usbStart(serusbcfg.usbp, &usbcfg);
-        usbConnectBus(serusbcfg.usbp);
+        core::mw::CoreModule::initialize();
 
         core::mw::Middleware::instance.initialize(name(), management_thread_stack, management_thread_stack.size(), core::os::Thread::LOWEST);
         rtcantra.initialize(rtcan_config, canID());
         core::mw::Middleware::instance.start();
+
+        sduObjectInit(core::hw::SDU_1::driver);
+        sduStart(core::hw::SDU_1::driver, &serusbcfg);
+        sdStart(core::hw::SD_3::driver, nullptr);
+
+        usbDisconnectBus(serusbcfg.usbp);
+        chThdSleepMilliseconds(1500);
+        usbStart(serusbcfg.usbp, &usbcfg);
+        usbConnectBus(serusbcfg.usbp);
 
         initialized = true;
     }
@@ -113,6 +105,12 @@ Module::disablePHY()
 {
     _phy_not_pwrdown.clear();
 }
+
+// ----------------------------------------------------------------------------
+// CoreModule STM32FlashConfigurationStorage
+// ----------------------------------------------------------------------------
+#include <core/snippets/CoreModuleSTM32FlashConfigurationStorage.hpp>
+// ----------------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------
 // CoreModule HW specific implementation

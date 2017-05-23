@@ -66,6 +66,8 @@
 
 #define LED							GPIOE_LED
 
+#define LED_PIN		13
+
 /*
  * IO pins assignments.
  */
