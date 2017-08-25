@@ -7,20 +7,21 @@
 #include <core/mw/Middleware.hpp>
 #include <core/mw/transport/RTCANTransport.hpp>
 
-#include <core/snippets/CortexMxFaultHandlers.h>
+#include "ch.h"
+#include "hal.h"
+#include "usbcfg.h"
 
 #include <core/hw/GPIO.hpp>
 #include <core/hw/SD.hpp>
-#include "usbcfg.h" // SDU1
 #include <core/hw/SDU.hpp>
+#include <core/hw/UID.hpp>
 #include <core/hw/IWDG.hpp>
 #include <core/os/Thread.hpp>
-#include <core/os/IOChannel.hpp>
 
 #include <Module.hpp>
 
 // LED
-using LED_PAD = core::hw::Pad_<core::hw::GPIO_E, LED_PIN>;
+using LED_PAD = core::hw::Pad_<core::hw::GPIO_E, GPIOE_LED>;
 static LED_PAD _led;
 
 // SD LED
@@ -31,24 +32,22 @@ static SD_LED_PAD _sd_led;
 using PHY_PAD = core::hw::Pad_<core::hw::GPIO_C, GPIOC_ETH_PWRDN>;
 static PHY_PAD _phy_not_pwrdown;
 
-// USB SERIAL
+// SERIALS
 using SDU_1_STREAM = core::os::SDChannelTraits<core::hw::SDU_1>;
-using USBSERIAL = core::os::IOChannel_<SDU_1_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
-static USBSERIAL _stream;
-
-// SERIAL
 using SD_3_STREAM  = core::os::SDChannelTraits<core::hw::SD_3>;
-using SERIAL = core::os::IOChannel_<SD_3_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
+using STREAM       = core::os::IOChannel_<SDU_1_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
+using SERIAL       = core::os::IOChannel_<SD_3_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
+static STREAM _stream;
 static SERIAL _serial;
 
 // MODULE DEVICES
-core::hw::Pad& Module::sd_led = _sd_led;
 core::os::IOChannel& Module::stream = _stream;
 core::os::IOChannel& Module::serial = _serial;
+core::hw::Pad&       Module::sd_led = _sd_led;
 
 
 // SYSTEM STUFF
-static core::os::Thread::Stack<1024> management_thread_stack;
+static core::os::Thread::Stack<2048> management_thread_stack;
 static core::mw::RTCANTransport      rtcantra(&RTCAND1);
 
 core::mw::Middleware
@@ -61,20 +60,15 @@ RTCANConfig rtcan_config = {
     1000000, 100, 60
 };
 
-
 Module::Module()
 {}
 
 bool
 Module::initialize()
 {
-    FAULT_HANDLERS_ENABLE(true);
-
     static bool initialized = false;
 
     if (!initialized) {
-        core::mw::CoreModule::initialize();
-
         core::mw::Middleware::instance.initialize(name(), management_thread_stack, management_thread_stack.size(), core::os::Thread::LOWEST);
         rtcantra.initialize(rtcan_config, canID());
         core::mw::Middleware::instance.start();

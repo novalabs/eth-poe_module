@@ -35,7 +35,7 @@
 #define _CHCONF_H_
 
 #ifdef _DEBUG
-#define DEBUG_CHIBI _DEBUG
+#define DEBUG_CHIBI TRUE
 #else
 #define DEBUG_CHIBI FALSE
 #endif
