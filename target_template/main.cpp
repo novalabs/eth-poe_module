@@ -29,15 +29,15 @@ extern "C" {
         led_subscriber_configuration.topic = "led";
         led_subscriber.setConfiguration(led_subscriber_configuration);
 
-        module.add(led_subscriber);
+        module.nodes().add(led_subscriber);
 
         // Setup and run
-        module.setup();
-        module.run();
+        module.nodes().setup();
+        module.nodes().run();
 
         // Is everything going well?
         for (;;) {
-            if (!module.isOk()) {
+            if (!module.nodes().areOk()) {
                 module.halt("This must not happen!");
             }
 
