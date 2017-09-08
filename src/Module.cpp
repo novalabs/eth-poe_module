@@ -33,16 +33,16 @@ static PHY_PAD _phy_not_pwrdown;
 
 // USB SERIAL
 using SDU_1_STREAM = core::os::SDChannelTraits<core::hw::SDU_1>;
-using USBSERIAL = core::os::IOChannel_<SDU_1_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
+using USBSERIAL    = core::os::IOChannel_<SDU_1_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
 static USBSERIAL _stream;
 
 // SERIAL
-using SD_3_STREAM  = core::os::SDChannelTraits<core::hw::SD_3>;
-using SERIAL = core::os::IOChannel_<SD_3_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
+using SD_3_STREAM = core::os::SDChannelTraits<core::hw::SD_3>;
+using SERIAL      = core::os::IOChannel_<SD_3_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
 static SERIAL _serial;
 
 // MODULE DEVICES
-core::hw::Pad& Module::sd_led = _sd_led;
+core::hw::Pad&       Module::sd_led = _sd_led;
 core::os::IOChannel& Module::stream = _stream;
 core::os::IOChannel& Module::serial = _serial;
 
