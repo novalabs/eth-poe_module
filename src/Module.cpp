@@ -11,10 +11,8 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "usbcfg.h"
 #include <core/hw/GPIO.hpp>
 #include <core/hw/SD.hpp>
-#include "usbcfg.h" // SDU1
 #include <core/hw/SDU.hpp>
 #include <core/hw/IWDG.hpp>
 #include <core/os/Thread.hpp>
@@ -46,6 +44,7 @@ using SERIAL      = core::os::IOChannel_<SD_3_STREAM, core::os::IOChannel::Defau
 static SERIAL _serial;
 
 // MODULE DEVICES
+core::hw::SDU _sdu;
 core::hw::Pad&       Module::sd_led = _sd_led;
 core::os::IOChannel& Module::stream = _stream;
 core::os::IOChannel& Module::serial = _serial;
@@ -80,14 +79,18 @@ Module::initialize()
         rtcantra.initialize(rtcan_config, canID());
         core::mw::Middleware::instance().start();
 
-        sduObjectInit(core::hw::SDU_1::driver);
-        sduStart(core::hw::SDU_1::driver, &serusbcfg);
-        sdStart(core::hw::SD_3::driver, nullptr);
+        /*
+         *         * Initializes a serial-over-USB CDC driver.
+         */
+        _sdu.setDescriptors(core::hw::SDUDefaultDescriptors::static_callback());
+        _sdu.init();
+        _sdu.start();
 
-        usbDisconnectBus(serusbcfg.usbp);
+
+        usbDisconnectBus(&USBD1);
         chThdSleepMilliseconds(1500);
-        usbStart(serusbcfg.usbp, &usbcfg);
-        usbConnectBus(serusbcfg.usbp);
+        usbStart(&USBD1, _sdu.usbcfg());
+        usbConnectBus(&USBD1);
 
         initialized = true;
     }
