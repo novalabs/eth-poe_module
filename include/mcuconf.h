@@ -1,3 +1,9 @@
+/* COPYRIGHT (c) 2016-2018 Nova Labs SRL
+ *
+ * All rights reserved. All use of this software and documentation is
+ * subject to the License Agreement located in the file LICENSE.
+ */
+ 
 /*
     ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
                  2011,2012 Giovanni Di Sirio.
