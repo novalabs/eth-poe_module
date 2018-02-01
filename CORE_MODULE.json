@@ -1,6 +1,6 @@
 {
   "name": "eth-poe",
-  "description": "ETH",
+  "description": "Nova Core ETH+PoE module",
   "chip": "STM32F407VG",
   "required_packages": [
     "stm32_flash",
