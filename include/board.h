@@ -69,10 +69,7 @@
 #define LED_GPIO                    GPIOE
 #define SD_LED_GPIO                 GPIOA
 #define SERIAL_DRIVER				SD1
-
-#define LED							GPIOE_LED
-
-#define LED_PIN		13
+#define LED_PIN		                6
 
 /*
  * IO pins assignments.

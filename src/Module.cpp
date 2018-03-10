@@ -73,7 +73,7 @@ Module::initialize()
     static bool initialized = false;
 
     if (!initialized) {
-//        core::mw::CoreModule::initialize();
+        core::mw::CoreModule::initialize();
 
         core::mw::Middleware::instance().initialize(name(), management_thread_stack, management_thread_stack.size(), core::os::Thread::LOWEST);
         rtcantra.initialize(rtcan_config, canID());
