@@ -58,6 +58,22 @@ RTCANConfig rtcan_config = {
     1000000, 100, 60
 };
 
+void
+usb_disconnect_bus()
+{
+    palClearPort(GPIOA, (1 << GPIOA_OTG_FS_DM) | (1 << GPIOA_OTG_FS_DP));
+    palSetPadMode(GPIOA, GPIOA_OTG_FS_DM, PAL_MODE_OUTPUT_PUSHPULL);
+    palSetPadMode(GPIOA, GPIOA_OTG_FS_DP, PAL_MODE_OUTPUT_PUSHPULL);
+}
+
+void
+usb_connect_bus()
+{
+    palClearPort(GPIOA, (1 << GPIOA_OTG_FS_DM) | (1 << GPIOA_OTG_FS_DP));
+    palSetPadMode(GPIOA, GPIOA_OTG_FS_DM, PAL_MODE_ALTERNATE(10));
+    palSetPadMode(GPIOA, GPIOA_OTG_FS_DP, PAL_MODE_ALTERNATE(10));
+}
+
 Module::Module()
 {}
 
@@ -79,17 +95,15 @@ Module::initialize()
         rtcantra.initialize(rtcan_config, canID());
         core::mw::Middleware::instance().start();
 
-        /*
-         *         * Initializes a serial-over-USB CDC driver.
-         */
         _sdu.setDescriptors(core::hw::SDUDefaultDescriptors::static_callback());
         _sdu.init();
         _sdu.start();
 
-
         usbDisconnectBus(&USBD1);
+        usb_disconnect_bus();
         chThdSleepMilliseconds(1500);
         usbStart(&USBD1, _sdu.usbcfg());
+        usb_connect_bus();
         usbConnectBus(&USBD1);
 
         initialized = true;
