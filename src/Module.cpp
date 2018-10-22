@@ -28,10 +28,6 @@ static LED_PAD _led;
 using SD_LED_PAD = core::hw::Pad_<core::hw::GPIO_A, GPIOA_SD_LED>;
 static SD_LED_PAD _sd_led;
 
-// PHY !POWERDOWN
-using PHY_PAD = core::hw::Pad_<core::hw::GPIO_C, GPIOC_ETH_PWRDN>;
-static PHY_PAD _phy_not_pwrdown;
-
 // USB SERIAL
 using SDU_1_STREAM = core::os::SDChannelTraits<core::hw::SDU_1>;
 using USBSERIAL    = core::os::IOChannel_<SDU_1_STREAM, core::os::IOChannel::DefaultTimeout::INFINITE>;
@@ -112,17 +108,6 @@ Module::initialize()
     return initialized;
 } // Board::initialize
 
-void
-Module::enablePHY()
-{
-    _phy_not_pwrdown.set();
-}
-
-void
-Module::disablePHY()
-{
-    _phy_not_pwrdown.clear();
-}
 
 // ----------------------------------------------------------------------------
 // CoreModule STM32FlashConfigurationStorage

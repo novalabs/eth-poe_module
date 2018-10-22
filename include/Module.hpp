@@ -27,16 +27,6 @@ public:
     static core::os::IOChannel& serial;
 // ----------------------------------------------------------------------------
 
-// --- Ethernet PHY control ---------------------------------------------------
-    static void
-    enablePHY();
-
-    static void
-    disablePHY();
-
-
-// ----------------------------------------------------------------------------
-
     static bool
     initialize();
 
